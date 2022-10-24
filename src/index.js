@@ -23,6 +23,14 @@ window.singlespa = function (element) {
   return false;
 }
 
+/**
+ * 在基座注册子应用的方法，eg:
+ * declareChildApplication('https://path/to/your/app1.js', () => window.location.pathname.startsWith('app1'))
+ * declareChildApplication('https://path/to/your/app2.js', () => window.location.pathname.startsWith('app2'))
+ * @param {*} appLocation string 子应用打包后的 js 文件地址
+ * @param {*} activeWhen function 子应用加载的条件，根据 URL 判断
+ */
+
 export function declareChildApplication(appLocation, activeWhen) {
   if (typeof appLocation !== 'string' || appLocation.length === 0)
     throw new Error(`The first argument must be a non-empty string 'appLocation'`);
@@ -31,6 +39,7 @@ export function declareChildApplication(appLocation, activeWhen) {
   if (appLocationToApp[appLocation])
     throw new Error(`There is already an app declared at location ${appLocation}`);
 
+  // 将子应用存到 appLocationToApp 对象里
   appLocationToApp[appLocation] = {
     appLocation: appLocation,
     activeWhen: activeWhen,
@@ -273,7 +282,9 @@ function registerApplication(appLocation, publicRoot, pathToIndex, lifecycles) {
 
 nativeAddEventListener('popstate', triggerAppChange);
 
-
+/**
+ * 返回当前 URL 对应的子应用配置
+ */
 function appForCurrentURL() {
   let appsForCurrentUrl = [];
   for (let appName in appLocationToApp) {
