@@ -2,7 +2,6 @@ let appLocationToApp = {};
 let unhandledRouteHandlers = [];
 let mountedApp;
 const nativeAddEventListener = window.addEventListener;
-const urlLoader = new LoaderPolyfill();
 const nativeSystemGlobal = window.System;
 const requiredLifeCycleFuncs = [
   'scriptsWillBeLoaded',
@@ -85,6 +84,9 @@ function callLifecycleFunction(app, funcName, ...args) {
   })
 }
 
+/**
+ * 找到当前 URL 对应的子应用，并触发它的生命周期
+ */
 function triggerAppChange() {
   let newApp = appForCurrentURL();
   if (!newApp) {
@@ -94,8 +96,9 @@ function triggerAppChange() {
   }
 
   if (newApp !== mountedApp) {
-
+    // 如果已经加载过其他子应用，先将其销毁
     (mountedApp ? callLifecycleFunction(mountedApp, 'applicationWillUnmount') : new Promise((resolve) => resolve()))
+      // 清除 HTML 中所有的 DOM 元素（子应用加载后，会将它 HTML 的内容添加到基座 HTML 中，但此版本的 cleanupDom 函数会将 HTML 清空，包括基座的 DOM，这是存在问题的）
       .then(() => cleanupDom())
       .then(() => finishUnmountingApp(mountedApp))
       .then(() => (mountedApp ? callLifecycleFunction(mountedApp, 'applicationWasUnmounted') : new Promise((resolve) => resolve())))
@@ -110,12 +113,12 @@ function triggerAppChange() {
 
 function cleanupDom() {
   return new Promise((resolve) => {
-    while (document.head.childNodes.length > 0) {
-      document.head.removeChild(document.head.childNodes[0]);
-    }
-    while (document.body.childNodes.length > 0) {
-      document.body.removeChild(document.body.childNodes[0]);
-    }
+    // while (document.head.childNodes.length > 0) {
+    //   document.head.removeChild(document.head.childNodes[0]);
+    // }
+    // while (document.body.childNodes.length > 0) {
+    //   document.body.removeChild(document.body.childNodes[0]);
+    // }
     resolve();
   })
 }
@@ -167,7 +170,6 @@ function loadIndex(app) {
     request.addEventListener('load', htmlLoaded);
     request.open('GET', `${window.location.protocol}//${window.location.hostname}:${window.location.port}/${app.publicRoot}/${app.pathToIndex}`);
     request.send();
-
     function htmlLoaded() {
       let parser = new DOMParser();
       let dom = parser.parseFromString(this.responseText, 'text/html');
@@ -283,7 +285,7 @@ function registerApplication(appLocation, publicRoot, pathToIndex, lifecycles) {
 nativeAddEventListener('popstate', triggerAppChange);
 
 /**
- * 返回当前 URL 对应的子应用配置
+ * 逐一执行子应用的 activeWhen 函数，如果当前的 URL 满足，则返回对应的子应用
  */
 function appForCurrentURL() {
   let appsForCurrentUrl = [];
