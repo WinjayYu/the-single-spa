@@ -334,6 +334,11 @@ function finishUnmountingApp(app) {
   })
 }
 
+/**
+ * 劫持 popstate，hashchange， 保证先感知到路由器路由的变化
+ * @param {*} name 
+ * @param {*} fn 
+ */
 window.addEventListener = function (name, fn) {
   if (mountedApp) {
     if (name === 'popstate') {

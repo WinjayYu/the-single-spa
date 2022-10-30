@@ -5,18 +5,21 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <!-- 使用 system.js 作为 js 模块加载器， Single SPA 加载子应用 js 的时候需要用到 -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/systemjs/0.19.41/system.js"></script>
     <script>
       window.System = window.SystemJS;
     </script>
+    <!-- 引入 Single SPA (src/index.js) 打包出来的 js，因为源码是 ES6 module 风格，需要编译工具转成 UMD 风格方便浏览器使用  -->
     <script src="./dist/index.js"></script>
     <script>
       const theSingleSpa = window.theSingleSpa;
-
+      // 注册子应用
       theSingleSpa.declareChildApplication(
         "http://localhost:3001/example/app1/dist/singlespa-config.js",
         () => window.location.hash === "#/app1"
       );
+      // 注册子应用
       theSingleSpa.declareChildApplication(
         "http://localhost:3001/example/app2/dist/singlespa-config.js",
         () => window.location.hash === "#/app2"
